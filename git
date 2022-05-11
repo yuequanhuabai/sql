@@ -1,0 +1,7 @@
+如果每次git操作需要输入帐号密码，执行该操作；
+git config --global credential.helper store        保存密码到本地
+
+git config --global http.sslVerify false 设置ssl为false
+
+# git config --global http.sslVerify "false" 关掉ssl
+

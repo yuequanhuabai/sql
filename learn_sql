@@ -1,0 +1,163 @@
+
+---------------------------------分组-------------------------------
+聚合函数之分组
+group by
+
+注意事项：
+1.group by 只能写在select 字句之中
+2.group by 子句中不能使用select子句中列的别名
+3.group by 子句的聚合结果是无序的
+4.where子句中不能使用聚合函数
+
+
+select --> from --> where -->group by
+
+聚合键中包含null时，在结果中会以“不确定”行(空行)的形式表现出来
+
+from-->where-->group by-->select
+  
+在使用count这样的聚合函数是，select子句中的元素有严格的限制。实际上，使用聚合函数是，select子句只能存在以下三种元素。
+1.常数
+3.聚合函数 
+3.group by子句中指定的列名(也就是聚合键)
+
+在使用group by 子句时，select 子句不能出现聚合键之外的列名
+（group by 不能使用别名）的原因是：根据sql执行顺序，select子句在group by之后执行；
+
+group by 子句的结果是无序的。
+
+
+#只有select ，having子句能够使用聚合函数；还有order by子句；
+
+distinct和group by都能够去重，且它们都会把null作为一个独立的结果；
+
+select distinct operation from sys_logs;
+select operation from sys_logs group by operation;
+
+1.使用count函数等对表中数据进行聚合操作时，为其指定条件的不是where子句，而是having子句；
+2.聚合函数可以在select子句，having子句和order by子句中使用；
+3.having子句要写在group by子句之后；
+4.where子句用来指定数据行的条件，having子句用来指定分组的条件；
+
+select -->from -->where -->group by -->having 
+
+having子句的构成要素和group by子句一样
+1.常数
+2.聚合函数
+3.group by子句中指定的列名
+
+聚合键所对应的条件不应该书写在having子句当中，而应该写在where子句中；
+
+使用聚合函数进行聚合操作时，DBMS内部会进行排序处理。排序处理会增加机器的负担；
+使用where条件过滤减少排序的行数，可以增加处理速度；
+而having子句是在排序后才对数据进行分组过滤的；
+另外，如果where子句条件列有索引，会有明显的提升；
+
+
+-----------------------------------排序----------------------------------
+
+对查询结果进行排序：
+-使用order by子句对查询结果进行排序
+-在order by子句中列名的后面使用关键字asc可以进行升序排序，使用desc关键字可以进行降序排序
+-order by 子句中可以指定多个排序键
+-排序键中包含null时，会在开头或末尾进行会总
+-order by子句可以使用select子句中定义的列的别名
+-order by子句可以使用select子句中为出现的列或者聚合函数
+-order by子句中不能使用列的编号
+
+asc  and  desc    ascendent，descendent  升序和降序；
+order by子句排序默认使用升序；
+由于asc和desc这两个关键字是以列为单位指定的，索引可以同时指定一个列为升序，指定其他列为降序；
+
+排序键中包含null时，会在开头或末尾进行汇总；
+
+from-->where-->group by-->having-->select-->order by
+
+由上的sql执行顺序可知，order by子句中可以使用select子句中的别名；
+
+#
+order by子句中可以使用存在于表中，但是并不包含在select子句之中的列；
+order by子句还可以使用聚合函数
+#
+order by 不要使用列编号；
+
+3.2
+select shohin_bunrui,sum(hanbai_tanka),sum(shiire_tanka) 
+from shohin
+group by shohin_bunrui
+having  sum(hanbai_tanka) >= sum(shiire_tanka)*1.5;
+
+3.3
+select * from shohin order by torokubi;
+
+select * from shohin
+order by torokubi desc,hanbai_tanka;
+
+第四章：
+数据的插入，删除，更新
+
+插入：
+1.从其他表复制数据
+
+删除：
+truncate and delete
+delete from table [where]
+truncate table 
+
+更新：
+同时修改多个字段：
+update table set sex='man',name='zhangsan' [where id=1]
+update table set (sex,name)=('man','zhangsan') [where id=1]  未验证
+
+事务：
+
+事务是需要在同一个处理单元中执行一系列处理操作的集合
+
+事务处理的终止指令包括commit(提交处理)和rallback(取消处理)
+
+DBMS的事务四个特性：原子性、一致性、隔离性、持久性。
+
+
+事务开始语句。标准sql中没有定义开始语句，而是由各个DBMS自己来定义的。
+
+sql server，postgreSql
+begin transaction
+
+mysql
+start transaction
+
+oracle db2
+无
+
+ACID
+
+原子性(Atomicity)
+
+原子性是指在事务结束时，其中所包含的更新处理要么全部执行，要么完全不执行的特性。
+也就是要么占有一切要么一无所有。
+例如，在之前的例子中，事务结束时，是绝对不可能出现运动T恤的价格下降了，而T恤的价格却没有上涨的情况。
+该事务的结束状态，要么是两者都执行列(commit),要么是两者都未执行(rallback).
+从事务中途停止的角度去考虑，就能比较容易理解原子性的重要性了。
+由于用户在一个事务中定义了两条update语句，dbms肯定不会只执行其中一条，否则就会对业务处理造成影响。
+
+一致性(consistency)
+
+一致性指的是事务中包含的处理，要满足数据库提前设置的约束，如主键约束或者not null约束等。
+例如，设置了not null约束的列是不能更新为null的，试图插入违反主键约束的记录就会出错，无法执行。
+对事务来说，这些不合法的sql会被回滚。也就是说这些sql处理会被取消，不会执行。
+一致性也称为完整性
+
+隔离性(Isolation)
+隔离性指的是保证不同事务之间胡不干扰的特性。该特性保证了事务之间不会相互嵌套。
+此外，在某个事务中进行的更改，在该事务结束之前，对其他事务而言是不可见的。
+因此，即使某个事务向表中添加了记录，在没有提交之前，其他事务是看不到新添加的记录的。
+
+持久性(Durability)
+
+持久性也可以称为耐久性，指的是事务(不论是提交还是回滚)一旦结束，DBMS会保证该时点的数据状态得以保存的特性。
+即使由于系统故障导致数据丢失，数据库也一定能通过某种手段进行恢复。
+如果不能保证持久性，即使是正常提交结束的事务，一旦发生了系统故障，就会导致数据丢失，一切都需要从头再来的后果。
+保证持久性的方法根据实现的不同而不同，其中最常见的就是将事务的执行记录保存到硬盘等存储介质中(该执行记录称为日志)。
+当故障发生时，可以通过日志恢复到故障发生前的状态。
+
+
