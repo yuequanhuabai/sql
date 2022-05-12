@@ -219,3 +219,23 @@ select 语句
 drop view view_name
 
 
+函数、谓词、case表达式
+
+函数：
+绝对值 abs(数值)
+求余  mod(被除数，除数)
+四舍五入  round(对象数值,保留小数的位数)
+
+字符串函数
+拼接 || 
+字符串长度 length(字符串)
+lower(字符串)
+upper(字符串)
+replace(对象字符串,替换前的字符串，替换后的字符串)
+substring(对象字符串 , 截取的起始位置 , 截取的字符数)
+substr
+
+current_date  当前日期
+current_timestamp  当前日期和时间
+current_time  当前时间
+extract(日期元素 from 日期) 截取日期元素
